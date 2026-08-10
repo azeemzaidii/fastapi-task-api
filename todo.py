@@ -120,15 +120,23 @@ def create_task(task: TaskCreate):
             detail="Title cannot be empty"
         )
 
-    new_task = {
-        "id": len(tasks) + 1,
+    connection = sqlite3.connect("tasks.db")
+
+    cursor = connection.execute(
+        "INSERT INTO tasks (title, done) VALUES (?, ?)",
+        (task.title, False)
+    )
+
+    task_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "id": task_id,
         "title": task.title,
         "done": False
     }
-
-    tasks.append(new_task)
-
-    return new_task
 @app.put("/tasks/{task_id}", description="Update an existing task")
 def update_task(task_id: int, updated_task: TaskUpdate):
     if updated_task.title is None and updated_task.done is None:
